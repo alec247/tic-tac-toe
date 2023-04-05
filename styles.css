@@ -30,6 +30,7 @@ h1 {
     justify-items: center;
     width: 30dvw;
     aspect-ratio: 1;
+    position: relative;
 }
 
 .tile {
@@ -49,4 +50,22 @@ h1 {
 .horizontal {
     border-top: solid black 1px;
     border-bottom: solid black 1px;
+}
+
+#win-banner {
+    display: grid;
+    align-content: center;
+    width: 50vw;
+    height: 80%;
+    position: absolute;
+    top: 10%;
+    background-color: rgba(128, 128, 128, 0.877);
+    z-index: 1;
+    text-align: center;
+    font-size: 5rem;
+    color: white;
+}
+
+.hidden {
+    display: none;
 }
