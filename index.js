@@ -1,3 +1,4 @@
+/* eslint-disable no-loop-func */
 /* eslint-disable no-plusplus */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-use-before-define */
@@ -14,10 +15,13 @@
 //   has function to check win status (3 in a row)
 // - PC player that plays random move in valid square
 // - game module that starts new game, resets game
-let gameOver = false;
 
-// Create new gameState initialized into variable, replace old external references to gameState
+// TODO: fix newGame so it resets variables after clicking reset game btn (click listeners)
+
 const gameState = (() => {
+    const banner = document.querySelector("#win-banner");
+    const gameOver = false;
+
     const getBoardArray = () => {
         const boardArray = Array.from(document.querySelectorAll(".tile")).map(
             (tile) => tile.innerText
@@ -26,17 +30,19 @@ const gameState = (() => {
         return boardArray;
     };
 
-    const displayWin = () => {
-        // Write code to show Winner page with which player wins (disable gameboard)
+    const displayWin = (tieGame) => {
         let winner;
-        const div = document.querySelector("#win-banner");
 
-        if (isPlayer1Playing) {
-            winner = "Player 1";
-        } else winner = "The computer";
+        if (tieGame) {
+            winner = "Tie Game :/";
+        } else if (newGame.isPlayer1Playing) {
+            winner = "Player 1 wins!";
+        } else winner = "The computer wins!";
 
-        div.innerText = `${winner} " wins!"`;
-        gameOver = true;
+        banner.style.display = "grid";
+        banner.innerText = `${winner}`;
+        gameBoard.removeTileClickListeners();
+        newGame.gameOver = true;
     };
 
     const checkWin = (array) => {
@@ -92,6 +98,9 @@ const gameState = (() => {
         ) {
             displayWin();
             console.log("WINNER8");
+        } else if (isBoardFull()) {
+            displayWin(true);
+            console.log("tie game");
         } else {
             console.log("Not yet");
         }
@@ -110,14 +119,17 @@ const gameState = (() => {
         return isFull;
     };
 
-    const newGame = () => {
+    const startNewGame = () => {
         const boardArray = getBoardArray();
         boardArray.forEach((tile, index) => {
             boardArray[index] = "";
             document.getElementById(`${index}`).innerText = "";
         });
-        gameState.isPlayer1Playing = true;
+        banner.style.display = "none";
+        banner.innerText = "";
         gameBoard.addTileClickListeners();
+        newGame.isPlayer1Playing = true;
+        newGame.gameOver = false;
     };
 
     const isPlayer1Playing = true;
@@ -126,39 +138,46 @@ const gameState = (() => {
         getBoardArray,
         checkWin,
         isBoardFull,
-        newGame,
+        startNewGame,
         isPlayer1Playing,
         gameOver,
     };
 })();
 
-const playerFactory = (number, letter, isComputer) => {
+let newGame = gameState;
+
+const playerFactory = (number, letter) => {
     const makeMove = (event) => {
-        event.target.innerText = letter;
-        event.target.removeEventListener("click", gameBoard.tileClickHandler);
-        const updatedBoard = gameState.getBoardArray();
-        gameState.checkWin(updatedBoard);
-        gameState.isPlayer1Playing = !gameState.isPlayer1Playing;
-        computerMove(gameOver);
+        if (!newGame.gameOver) {
+            event.target.innerText = letter;
+            event.target.removeEventListener(
+                "click",
+                gameBoard.tileClickHandler
+            );
+            const updatedBoard = newGame.getBoardArray();
+            newGame.checkWin(updatedBoard);
+            newGame.isPlayer1Playing = !newGame.isPlayer1Playing;
+            computerMove(newGame.gameOver);
+        }
     };
 
     const computerMove = (isGameOver) => {
-        if (isGameOver) return;
-        const array = gameState.getBoardArray();
-        let turnPlayed = false;
+        if (isGameOver);
+        else {
+            const array = newGame.getBoardArray();
+            let turnPlayed = false;
 
-        while (!turnPlayed && !gameState.isBoardFull()) {
-            let randNum = Math.round(Math.random() * 8);
+            while (!turnPlayed && !newGame.isBoardFull()) {
+                let randNum = Math.round(Math.random() * 8);
 
-            if (array[randNum] === "") {
-                setTimeout(() => {
+                if (array[randNum] === "") {
                     document.getElementById(`${randNum}`).innerText = "O";
-                }, 500);
-                turnPlayed = true;
-                gameState.checkWin(gameState.getBoardArray());
-                gameState.isPlayer1Playing = true;
-            } else {
-                randNum = Math.round(Math.random() * 8);
+                    turnPlayed = true;
+                    newGame.checkWin(newGame.getBoardArray());
+                    newGame.isPlayer1Playing = true;
+                } else {
+                    randNum = Math.round(Math.random() * 8);
+                }
             }
         }
     };
@@ -168,7 +187,8 @@ const playerFactory = (number, letter, isComputer) => {
 
 const gameBoard = (() => {
     const tileClickHandler = (event) => {
-        if (gameState.isPlayer1Playing && event.target.innerText === "") {
+        console.log(newGame);
+        if (newGame.isPlayer1Playing && event.target.innerText === "") {
             player1.makeMove(event);
         }
     };
@@ -191,7 +211,7 @@ const gameBoard = (() => {
     const addResetFunction = () => {
         document
             .querySelector(".reset")
-            .addEventListener("click", gameState.newGame);
+            .addEventListener("click", newGame.startNewGame);
     };
 
     addTileClickListeners();
@@ -204,4 +224,4 @@ const gameBoard = (() => {
     };
 })();
 
-const player1 = playerFactory(1, "X", false);
+const player1 = playerFactory(1, "X");
